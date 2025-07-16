@@ -1,6 +1,11 @@
-__import__('pysqlite3')
 import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
+try:
+    __import__('pysqlite3')
+    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+except ImportError:
+    pass  # fallback to system sqlite3 if pysqlite3 is not available
+
 
 import os
 from dotenv import load_dotenv

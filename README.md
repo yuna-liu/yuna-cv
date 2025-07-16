@@ -2,7 +2,7 @@
 
 python -m venv .venv --only one time to create a enviroment for this project
 
-.venv\Scripts\activate --go to this enviroment
+.venv311\Scripts\activate --go to this enviroment
 
 pip install -r requirements.txt
 
