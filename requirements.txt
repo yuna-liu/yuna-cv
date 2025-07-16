@@ -34,3 +34,6 @@ chromadb==0.4.13  # ✅ downgrade to avoid sqlite3 issue
 
 PyPDF2==3.0.1
 pypdf
+
+
+pysqlite3-binary 
