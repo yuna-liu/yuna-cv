@@ -34,7 +34,7 @@ st.write(f"Loaded {len(_chunks)} document chunks.")
 @st.cache_resource
 def create_vectorstore(_chunks):
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    vectordb = Chroma.from_documents(_chunks, embeddings, persist_directory="db")
+    vectordb = Chroma.from_documents(_chunks, embeddings)#, persist_directory="db")
     return vectordb
 
 vectorstore = create_vectorstore(_chunks)
