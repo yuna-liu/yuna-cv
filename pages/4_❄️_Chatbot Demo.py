@@ -8,7 +8,7 @@ st.markdown(
     """
     <style>
     body, p, li {
-        font-size: 18px !important;
+        font-size: 16px !important;
     }
     h1 {
         font-size: 2.5rem !important;
@@ -35,4 +35,4 @@ From identifying top-selling models to comparing year-over-year sales performanc
 """)
 
 st.markdown("### ⚙️ Solution Architecture")
-st.image("assets/cortex_analyst.png", caption="Solution Architecture for Cortex Analyst", use_container_width=True)
+st.image("assets/cortex_analyst.png", caption="Solution Architecture for Cortex Analyst", width=400)
