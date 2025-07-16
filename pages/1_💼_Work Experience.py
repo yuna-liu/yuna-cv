@@ -6,7 +6,6 @@ from pyvis.network import Network
 import streamlit.components.v1 as components
 
 
-
 NEO4J_URI = st.secrets["neo4j"]["NEO4J_URI"]
 NEO4J_USER = st.secrets["neo4j"]["NEO4J_USER"]
 NEO4J_PASSWORD = st.secrets["neo4j"]["NEO4J_PASSWORD"]
@@ -16,7 +15,7 @@ driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
 
 
 # Streamlit Page Layout
-st.set_page_config(layout="wide", page_title="Yuna's work experince", page_icon="💼")
+st.set_page_config(layout="wide", page_title="Yuna's work experience", page_icon="💼")
 st.title("💼 Yuna's Work Experience")
 
 # Enlarge fonts globally on this page (optional)
@@ -97,6 +96,10 @@ def draw_graph(records):
     components.html(open("cv_graph.html", "r", encoding="utf-8").read(), height=650, scrolling=True)
 
 
+
 with st.spinner("Fetching graph from Neo4j..."):
-    graph_data = get_cv_graph()
-    draw_graph(graph_data)
+    try:
+        graph_data = get_cv_graph()
+        draw_graph(graph_data)
+    except Exception:
+        st.error("⚠️ Could not connect to the Neo4j database. It may be sleeping (Aura Free auto-sleeps after 3 days), please notify the owner to manually resume it in the Neo4j Aura Console.")
