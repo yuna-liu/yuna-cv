@@ -29,7 +29,7 @@ python-dotenv==1.0.1
 langchain==0.1.16
 sentence-transformers
 huggingface-hub>=0.19.3
-chromadb==0.4.24
+chromadb==0.4.22  # instead of 0.4.24 or higher
 
 PyPDF2==3.0.1
 pypdf
