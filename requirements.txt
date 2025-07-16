@@ -34,3 +34,6 @@ chromadb==0.4.22  # instead of 0.4.24 or higher
 PyPDF2==3.0.1
 pypdf
 langchain-community
+
+
+pysqlite3-binary
