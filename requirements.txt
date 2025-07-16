@@ -23,17 +23,14 @@ pyvis
 python-dotenv==1.0.1
 
 # environment management
-#virtualenv
+virtualenv
 
 
 langchain==0.1.16
+langchain-community
 sentence-transformers
 huggingface-hub>=0.19.3
-chromadb==0.4.22  # instead of 0.4.24 or higher
+chromadb==0.4.13  # ✅ downgrade to avoid sqlite3 issue
 
 PyPDF2==3.0.1
 pypdf
-langchain-community
-
-
-pysqlite3-binary
