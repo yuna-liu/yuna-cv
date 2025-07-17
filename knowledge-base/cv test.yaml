@@ -1,0 +1,113 @@
+name: Yuna Liu
+birthdate: 1984-03-08
+birthplace: Xiangtan County, Hunan, China
+location: Gothenburg, Sweden
+mbti: INTJ-A
+languages:
+  - Chinese (native)
+  - English (fluent)
+  - Swedish (intermediate)
+
+contact:
+  email: yuna@example.com
+  linkedin: https://www.linkedin.com/in/yunaliu
+  github: https://github.com/yuna-liu
+
+summary: >
+  Experienced data engineer and data scientist with a PhD in Economics. Proficient in building data pipelines,
+  designing analytics dashboards, and applying machine learning for real-world problems. Structured, solution-oriented,
+  and motivated by meaningful technical challenges.
+
+current_position:
+  title: Consultant, Data Engineer & BI Engineer
+  company: Capgemini (assigned to Volvo Cars)
+  since: 2023-09
+  location: Gothenburg
+  status: Contracted until June 2025 (possibility for permanent position)
+
+certifications:
+  - name: Microsoft Certified: Azure Data Engineer Associate (DP-203)
+    issued: 2024-09
+  - name: Matillion Associate Certification
+    issued: 2024-08
+    expires: 2027-08
+  - name: Microsoft Certified: Azure AI Fundamentals
+    issued: 2024-06
+  - name: Snowflake SnowPro Core Certification (COF-C02)
+    issued: 2024-04
+    expires: 2026-04
+  - name: Microsoft Certified: Azure Data Fundamentals
+    issued: 2024-03
+  - name: Databricks Machine Learning Associate
+    issued: 2024-12
+  - name: Databricks Machine Learning Professional
+    issued: 2025-xx  # update when passed
+
+education:
+  - degree: PhD in Economics
+    university: University of Gothenburg
+    country: Sweden
+  - program: Developer in AI and Machine Learning
+    duration: 2 years
+    completed: true
+
+skills:
+  programming:
+    - Python
+    - SQL
+  ml_frameworks:
+    - scikit-learn
+    - PySpark
+    - TensorFlow
+    - Databricks ML
+  cloud_platforms:
+    - Azure
+  data_tools:
+    - Snowflake
+    - Matillion
+    - Power BI
+    - Azure Data Factory
+    - Power Automate
+    - Azure Analysis Services
+    - Streamlit
+  soft_skills:
+    - structured
+    - solution-oriented
+    - enthusiastic
+    - self-motivated
+    - adaptable
+
+career_projects:
+  - title: Sales Dashboard at Volvo Cars
+    start: 2023-09
+    description: >
+      Built robust backend ETL pipelines using Matillion and Snowflake, with data visualization in Power BI.
+      Managed business logic in Azure Analysis Services and collaborated across teams to ensure data accuracy and timeliness.
+    tools: [Matillion, Snowflake, Azure Data Factory, Power BI, SQL, Power Automate]
+
+  - title: Cell Durability Pipeline at Volvo Cars
+    start: 2023-01
+    end: 2023-05
+    description: >
+      Designed and implemented automated data pipelines for battery testing data. Enhanced Power BI performance by over 70%.
+    tools: [Python, Azure, Power BI, SQL, Power Automate]
+
+  - title: Credit Default Prediction at Collector Bank
+    start: 2022-09
+    end: 2022-11
+    description: >
+      Cleaned and integrated large-scale credit datasets and applied machine learning to predict default risk.
+      Used Databricks MLflow and Pyspark to deploy and analyze models.
+    tools: [Databricks, PySpark, Python, scikit-learn, MLflow]
+
+interests:
+  - Machine Learning
+  - Automation
+  - Decision Intelligence
+  - Programming Challenges
+  - AI Chatbots
+
+personal_traits:
+  - competence-based partnership in marriage
+  - structured parenting philosophy
+  - lifelong learning mindset
