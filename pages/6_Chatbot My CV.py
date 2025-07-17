@@ -9,6 +9,9 @@ import os
 import yaml
 from dotenv import load_dotenv
 import streamlit as st
+import pandas as pd
+from langchain_core.documents import Document
+
 
 from langchain_community.document_loaders import DirectoryLoader, PyPDFLoader
 from langchain_text_splitters import CharacterTextSplitter
@@ -40,8 +43,28 @@ def load_and_split_docs():
     )
     return splitter.split_documents(docs)
 
-_chunks = load_and_split_docs()
-st.write(f"📚 Loaded {len(_chunks)} document chunks.")
+
+@st.cache_resource
+def load_csv_as_documents(path: str, source: str) -> list:
+    df = pd.read_csv(path)
+    docs = []
+
+    for _, row in df.iterrows():
+        text = f"Source: {source} | " + " | ".join([f"{col}: {row[col]}" for col in df.columns])
+        docs.append(Document(page_content=text))
+
+    return docs
+
+
+pdf_chunks = load_and_split_docs()
+cert_chunks = load_csv_as_documents("data/certifications.csv", source="Certifications")
+edu_chunks = load_csv_as_documents("data/education.csv", source="Education")
+
+_chunks = pdf_chunks + cert_chunks + edu_chunks
+
+st.write(f"📚 Loaded {len(_chunks)} document chunks (PDF + CSVs)")
+
+
 
 # === Step 2: Create vectorstore ===
 @st.cache_resource
