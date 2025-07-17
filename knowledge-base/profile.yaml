@@ -47,6 +47,8 @@ education:
   - degree: PhD in Economics
     university: University of Gothenburg
     country: Sweden
+    duration: 6 years
+    completed: true
   - program: Developer in AI and Machine Learning
     duration: 2 years
     completed: true

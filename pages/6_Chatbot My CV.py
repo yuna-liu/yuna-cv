@@ -1,13 +1,12 @@
 import sys
-
 try:
     __import__('pysqlite3')
     sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 except ImportError:
-    pass  # fallback to system sqlite3 if pysqlite3 is not available
-
+    pass
 
 import os
+import yaml
 from dotenv import load_dotenv
 import streamlit as st
 
@@ -16,57 +15,62 @@ from langchain_text_splitters import CharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain.chains import RetrievalQA
-from langchain_community.llms import HuggingFacePipeline # 👈 This is for local use
+from langchain_community.llms import HuggingFacePipeline
+from transformers import pipeline
 
-from transformers import pipeline  # 👈 Local model pipeline
-
-# 1. Load environment variables
+# === Load .env and config.yaml ===
 load_dotenv()
 hf_token = os.getenv("HUGGINGFACEHUB_API_TOKEN")
 
-# 2. Load and split documents
+with open("config.yaml", "r") as f:
+    config = yaml.safe_load(f)
+
+# === Step 1: Load and split documents ===
 @st.cache_resource
 def load_and_split_docs():
     loader = DirectoryLoader(
-        "knowledge-base",
-        glob="**/*.pdf",
+        config["document_loader"]["folder"],
+        glob=config["document_loader"]["pattern"],
         loader_cls=PyPDFLoader,
     )
     docs = loader.load()
-    splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    splitter = CharacterTextSplitter(
+        chunk_size=config["document_loader"]["chunk_size"],
+        chunk_overlap=config["document_loader"]["chunk_overlap"],
+    )
     return splitter.split_documents(docs)
 
 _chunks = load_and_split_docs()
-st.write(f"Loaded {len(_chunks)} document chunks.")
+st.write(f"📚 Loaded {len(_chunks)} document chunks.")
 
-# 3. Create vectorstore
+# === Step 2: Create vectorstore ===
 @st.cache_resource
 def create_vectorstore(_chunks):
-    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    vectordb = Chroma.from_documents(_chunks, embeddings)#, persist_directory="db")
+    embeddings = HuggingFaceEmbeddings(model_name=config["embedding"]["model_name"])
+    vectordb = Chroma.from_documents(_chunks, embeddings)
     return vectordb
 
 vectorstore = create_vectorstore(_chunks)
 
-# 4. Use local FLAN-T5 model
+# === Step 3: Load local model and build Retrieval QA chain ===
 @st.cache_resource
 def get_qa_chain():
     pipe = pipeline(
         "text2text-generation",
-        model="google/flan-t5-base",
-        tokenizer="google/flan-t5-base",
-        max_new_tokens=256,
-        temperature=0.5,
-        top_p=0.95
+        model=config["model"]["name"],
+        tokenizer=config["model"]["name"],
+        max_new_tokens=config["model"]["max_new_tokens"],
+        temperature=config["model"]["temperature"],
+        top_p=config["model"]["top_p"],
     )
     llm = HuggingFacePipeline(pipeline=pipe)
-    retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
+    retriever = vectorstore.as_retriever(search_kwargs={"k": config["retriever"]["k"]})
     return RetrievalQA.from_chain_type(llm=llm, retriever=retriever)
 
 qa_chain = get_qa_chain()
 
-# 5. Streamlit interface
-st.title("📄 My CV Chatbot (Local Flan-T5)")
+# === Step 4: Streamlit UI ===
+st.title("📄 My CV Chatbot (Local FLAN-T5)")
 
 if "history" not in st.session_state:
     st.session_state.history = []
@@ -75,9 +79,9 @@ query = st.text_input("Ask me anything about my CV:")
 
 if query:
     with st.spinner("Generating answer..."):
-        result = qa_chain.run(query)
-    st.session_state.history.append((query, result))
-    st.write(f"**Answer:** {result}")
+        result = qa_chain.invoke({"query": query})
+    st.session_state.history.append((query, result["result"]))
+    st.write(f"**Answer:** {result['result']}")
 
     for q, a in reversed(st.session_state.history):
         st.markdown(f"**Q:** {q}")
