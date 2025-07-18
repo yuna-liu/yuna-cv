@@ -53,38 +53,26 @@ def map_query_synonyms(query: str, synonyms_dict: dict) -> str:
 
 # === Load YAML profile and convert to human-readable document chunks ===
 @st.cache_resource
-def load_yaml_as_documents(path: str) -> list:
+def load_yaml_as_documents(path: str) -> list[Document]:
     with open(path, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f)
 
     documents = []
 
-    def to_str(obj):
-        if isinstance(obj, dict):
-            return "\n".join([f"{k}: {to_str(v)}" for k, v in obj.items()])
-        elif isinstance(obj, list):
-            return "\n- " + "\n- ".join([to_str(item) for item in obj])
-        else:
-            return str(obj)
+    # Chunk all top-level keys except "Example questions and answers"
+    for key, value in data.items():
+        if key != "Example questions and answers":
+            chunk_text = f"{key}:\n{yaml.dump(value, allow_unicode=True)}"
+            documents.append(Document(page_content=chunk_text))
 
-    for section, content in data.items():
-        if section in ["synonyms"]:  # Skip synonyms section
-            continue
-        doc_text = f"{section}:\n{to_str(content)}"
-        documents.append(Document(page_content=doc_text, metadata={"section": section}))
+    # Handle Q&A section
+    if "Example questions and answers" in data:
+        qas = data["Example questions and answers"]
+        for i, qa in enumerate(qas):
+            chunk_text = f"Example question {i+1}:\nq: {qa['q']}\na: {qa['a']}\n"
+            documents.append(Document(page_content=chunk_text))
 
-    splitter = CharacterTextSplitter(
-        chunk_size=config["document_loader"]["chunk_size"],
-        chunk_overlap=config["document_loader"]["chunk_overlap"],
-    )
-
-    split_docs = []
-    for doc in documents:
-        split_docs.extend(splitter.split_documents([doc]))
-
-    return split_docs
-
-
+    return documents
 
 _chunks = load_yaml_as_documents("knowledge_base/profile.yaml")
 st.write(f"📘 Loaded {len(_chunks)} chunks from YAML profile.")
@@ -114,7 +102,7 @@ def get_qa_chain():
     )
     llm = HuggingFacePipeline(pipeline=pipe)
     retriever = vectorstore.as_retriever(search_kwargs={"k": config["retriever"]["k"]})
-    return RetrievalQA.from_chain_type(llm=llm, retriever=retriever)
+    return RetrievalQA.from_chain_type(llm=llm, retriever=retriever, return_source_documents=True)
 
 
 qa_chain = get_qa_chain()

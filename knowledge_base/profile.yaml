@@ -1,6 +1,3 @@
-
-name: Yuna Liu
-location: Gothenburg, Sweden
 languages:
   - Chinese (native)
   - English (fluent)
@@ -10,14 +7,12 @@ contact:
   linkedin: https://www.linkedin.com/in/yuna-liu-9a21b63a/
   github: https://github.com/yuna-liu
 
-
 summary:
   I am Yuna Liu, an experienced data engineer, data scientist, and machine learning developer with a PhD in Economics.
   Specialized in building scalable data pipelines, analytics dashboards, and applying advanced ML and GenAI techniques to solve real-world problems.
   Skilled in LLM integration, RAG architecture, and prompt engineering.
   Passionate about leveraging AI to drive decision intelligence and automation across business domains.
   Structured, solution-oriented, and constantly motivated by meaningful technical challenges.
-
 
 skills:
   -programming:
