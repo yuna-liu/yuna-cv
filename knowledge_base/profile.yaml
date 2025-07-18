@@ -42,27 +42,10 @@ skills:
     - adaptable
 
 work_experience:
-  - title: Data Engineer at Sales Dashboard team at Volvo Cars
-    start: 2023-09
-    description: >
-      Built robust backend ETL pipelines using Matillion and Snowflake, with data visualization in Power BI. Developed an GenAI solution for business insights.
+  - Data Engineer at Sales Dashboard team at Volvo Cars, built robust backend ETL pipelines using Matillion and Snowflake, with data visualization in Power BI. Developed an GenAI solution for business insights.
       Managed business logic in Azure Analysis Services and collaborated across teams to ensure data accuracy and timeliness.
-    tools: [Matillion, Snowflake, Azure Data Factory, Power BI, SQL, Power Automate]
-
-  - title: Data Engineer at Cell Durability team at Volvo Cars
-    start: 2023-01
-    end: 2023-05
-    description: >
-      Designed and implemented automated data pipelines for battery testing data. Enhanced Power BI performance by over 70%.
-    tools: [Python, Azure, Power BI, SQL, Power Automate]
-
-  - title: Data Scientist at Collector Bank
-    start: 2022-09
-    end: 2022-11
-    description: >
-      Cleaned and integrated large-scale credit datasets and applied machine learning to predict default risk.
-      Used Databricks MLflow and Pyspark to deploy and analyze models.
-    tools: [Databricks, PySpark, Python, scikit-learn, MLflow]
+  - Data Engineer at Cell Durability team at Volvo Cars, designed and implemented automated data pipelines for battery testing data. Enhanced Power BI performance by over 70%.
+  - Data Scientist at Collector Bank, cleaned and integrated large-scale credit datasets and applied machine learning to predict default risk. Used Databricks MLflow and Pyspark to deploy and analyze models.
 
 interests:
   - Machine Learning
