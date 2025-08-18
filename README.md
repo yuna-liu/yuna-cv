@@ -4,7 +4,7 @@ python -m venv .venv --only one time to create a enviroment for this project
 
 .venv311\Scripts\activate --go to this enviroment
 
-pip install -r requirements.txt
+pip install -r requirements.txt --in case I want to install the defined packages to this enviroment, only one time
 
 terminal run: streamlit run streamlit_app.py
 

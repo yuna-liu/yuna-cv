@@ -4,17 +4,14 @@ import streamlit as st
 from neo4j import GraphDatabase
 from pyvis.network import Network
 import streamlit.components.v1 as components
+import traceback
 
-
+# --- Neo4j Credentials ---
 NEO4J_URI = st.secrets["neo4j"]["NEO4J_URI"]
 NEO4J_USER = st.secrets["neo4j"]["NEO4J_USER"]
 NEO4J_PASSWORD = st.secrets["neo4j"]["NEO4J_PASSWORD"]
 
-driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
-
-
-
-# Streamlit Page Layout
+# --- Streamlit Page Layout ---
 st.set_page_config(layout="wide", page_title="Yuna's work experience", page_icon="💼")
 st.title("💼 Yuna's Work Experience")
 
@@ -22,12 +19,8 @@ st.title("💼 Yuna's Work Experience")
 st.markdown(
     """
     <style>
-    body, p, li {
-        font-size: 18px !important;
-    }
-    h1 {
-        font-size: 2.5rem !important;
-    }
+    body, p, li { font-size: 18px !important; }
+    h1 { font-size: 2.5rem !important; }
     </style>
     """,
     unsafe_allow_html=True,
@@ -43,17 +36,20 @@ This graph is dynamically loaded from a **Neo4j Aura Free** instance and rendere
 """)
 
 
+# --- Neo4j Query ---
 def get_cv_graph():
-    driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
     query = """
     MATCH (n)-[r]->(m)
     RETURN n.name AS source, labels(n)[0] AS source_type,
            type(r) AS relation, m.name AS target, labels(m)[0] AS target_type
     """
+    driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
     with driver.session() as session:
         result = session.run(query)
         return [record.data() for record in result]
 
+
+# --- Draw Graph ---
 def draw_graph(records):
     net = Network(height="600px", width="100%", bgcolor="#ffffff", font_color="black")
 
@@ -70,14 +66,8 @@ def draw_graph(records):
     net.set_options("""
     var options = {
       "edges": {
-        "arrows": {
-          "to": {
-            "enabled": true
-          }
-        },
-        "color": {
-          "inherit": true
-        },
+        "arrows": { "to": { "enabled": true } },
+        "color": { "inherit": true },
         "smooth": false
       },
       "physics": {
@@ -96,10 +86,15 @@ def draw_graph(records):
     components.html(open("cv_graph.html", "r", encoding="utf-8").read(), height=650, scrolling=True)
 
 
-
+# --- Main Execution ---
 with st.spinner("Fetching graph from Neo4j..."):
     try:
         graph_data = get_cv_graph()
         draw_graph(graph_data)
-    except Exception:
-        st.error("⚠️ Could not connect to the Neo4j database. It may be sleeping (Aura Free auto-sleeps after 3 days), please notify the owner to manually resume it in the Neo4j Aura Console.")
+    except Exception as e:
+        # Show only a friendly message to the user
+        st.error("⚠️ Could not connect to the Neo4j database. It may be sleeping (Aura Free auto-sleeps after 3 days). Please notify the owner to manually resume it in the Neo4j Aura Console.")
+
+        # Log the detailed error to the console (not shown to users)
+        print("Neo4j connection error:", e)
+        traceback.print_exc()
