@@ -22,7 +22,7 @@ from transformers import pipeline
 load_dotenv()
 hf_token = os.getenv("HUGGINGFACEHUB_API_TOKEN")
 
-with open("config.yaml", "r") as f:
+with open("config_huggingface.yaml", "r") as f:
     config = yaml.safe_load(f)
 
 # Synonyms dictionary (your existing one)
