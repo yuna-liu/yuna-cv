@@ -10,7 +10,7 @@ from langchain.chat_models import ChatOpenAI
 api_key = st.secrets["openai"]["api_key"]
 
 # === Load config.yaml ===
-with open("../config.yaml", "r") as f:
+with open("config.yaml", "r") as f:
     config = yaml.safe_load(f)
 
 # === Synonyms dictionary ===
