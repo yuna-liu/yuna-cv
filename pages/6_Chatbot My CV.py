@@ -1,45 +1,28 @@
-import sys
-try:
-    __import__('pysqlite3')
-    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
-except ImportError:
-    pass
-
-import os
-import yaml
-from dotenv import load_dotenv
 import streamlit as st
+import yaml
 from langchain_core.documents import Document
-
-from langchain_text_splitters import CharacterTextSplitter
-from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.chains import RetrievalQA
-from langchain_community.llms import HuggingFacePipeline
-from transformers import pipeline
+from langchain.chat_models import ChatOpenAI
 
-# === Load .env and config.yaml ===
-load_dotenv()
-hf_token = os.getenv("HUGGINGFACEHUB_API_TOKEN")
+# === OpenAI API key ===
+api_key = st.secrets["openai"]["api_key"]
 
-with open("config_huggingface.yaml", "r") as f:
-    config = yaml.safe_load(f)
-
-# Synonyms dictionary (your existing one)
+# === Synonyms dictionary ===
 synonyms = {
-    "education": ["education", "university", "universities", "degree", "degrees", "educations", "education background", "educational background", "academic background", "qualifications"],
-    "certifications": ["certification", "certifications", "certificate", "certificates", "exam", "exams"],
-    "skills": ["skill", "skills", "expertise", "competence", "competences", "capability", "capabilities", "proficiencies", "programming languages", "programming", "soft skills", "strengths", "qualities"],
-    "work_experience:": ["projects", "project", "portfolio", "work experience", "work projects", "career projects", "work experience", "experience", "employment",  "work", "job", "jobs", "professional experience", "career experience", "work history"],
-    "awards": ["award", "awards", "recognition", "recognitions", "honor", "honors"],
-    "current_position": ["current position", "current job", "current role", "current employment", "current work"],
-    "publications": ["publication", "publications", "paper", "papers", "article", "articles"],
-    "languages": ["language", "languages", "spoken language", "spoken languages", "spoken"],
-    "interests": ["interest", "interests", "hobby", "hobbies", "passions", "personal interests"],
-    "references": ["reference", "references", "referee", "referees"],
-    "contact": ["contact", "contact information", "contact info", "contact details"],
-    "summary": ["summary", "profile", "introduction", "about me", "bio", "biography", "self-introduction", "self introduction", "self summary", "introduce yourself"],
-    "achievements": ["achievement", "achievements", "award", "awards", "recognition", "recognitions"]
+    "education": ["education", "university", "degree", "academic background", "qualifications"],
+    "certifications": ["certification", "certificate", "exam"],
+    "skills": ["skills", "expertise", "competences", "programming languages", "soft skills"],
+    "work_experience": ["work experience", "experience", "projects", "career projects", "job", "jobs"],
+    "awards": ["awards", "recognition", "honor"],
+    "current_position": ["current role", "current position", "current job"],
+    "publications": ["publications", "papers", "articles"],
+    "languages": ["languages", "spoken language"],
+    "interests": ["interests", "hobbies", "passions"],
+    "contact": ["contact", "contact information"],
+    "summary": ["summary", "profile", "introduction", "bio"],
+    "achievements": ["achievements", "award", "recognition"]
 }
 
 def map_query_synonyms(query: str, synonyms_dict: dict) -> str:
@@ -50,66 +33,63 @@ def map_query_synonyms(query: str, synonyms_dict: dict) -> str:
                 query_lower = query_lower.replace(syn, canonical)
     return query_lower
 
-
-# === Load YAML profile and convert to human-readable document chunks ===
+# === Load YAML profile as documents ===
 @st.cache_resource
-def load_yaml_as_documents(path: str) -> list[Document]:
-    with open(path, "r", encoding="utf-8") as f:
-        data = yaml.safe_load(f)
+def load_yaml_as_documents(path: str):
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+    except FileNotFoundError:
+        st.error(f"Cannot find YAML file at: {path}")
+        return []
 
     documents = []
 
-    # Chunk all top-level keys except "Example questions and answers"
+    # Top-level keys
     for key, value in data.items():
         if key != "Example questions and answers":
             chunk_text = f"{key}:\n{yaml.dump(value, allow_unicode=True)}"
-            documents.append(Document(page_content=chunk_text))
+            documents.append(Document(page_content=chunk_text, metadata={"key": key}))
 
-    # Handle Q&A section
+    # Add example Q&A separately
     if "Example questions and answers" in data:
-        qas = data["Example questions and answers"]
-        for i, qa in enumerate(qas):
-            chunk_text = f"Example question {i+1}:\nq: {qa['q']}\na: {qa['a']}\n"
-            documents.append(Document(page_content=chunk_text))
+        for i, qa in enumerate(data["Example questions and answers"]):
+            chunk_text = f"Q: {qa['q']}\nA: {qa['a']}"
+            documents.append(Document(page_content=chunk_text, metadata={"key": "Example Q&A"}))
 
     return documents
 
 _chunks = load_yaml_as_documents("knowledge_base/profile.yaml")
 st.write(f"📘 Loaded {len(_chunks)} chunks from YAML profile.")
 
-
 # === Create vectorstore ===
 @st.cache_resource
 def create_vectorstore(_chunks):
-    embeddings = HuggingFaceEmbeddings(model_name=config["embedding"]["model_name"])
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     vectordb = Chroma.from_documents(_chunks, embeddings)
     return vectordb
 
-
 vectorstore = create_vectorstore(_chunks)
 
-
-# === Load local model and build Retrieval QA chain ===
+# === Build RetrievalQA chain with ChatGPT ===
 @st.cache_resource
 def get_qa_chain():
-    pipe = pipeline(
-        "text2text-generation",
-        model=config["model"]["name"],
-        tokenizer=config["model"]["name"],
-        max_new_tokens=config["model"]["max_new_tokens"],
-        temperature=config["model"]["temperature"],
-        top_p=config["model"]["top_p"],
+    llm = ChatOpenAI(
+        model_name="gpt-3.5-turbo",
+        temperature=0,
+        openai_api_key=api_key
     )
-    llm = HuggingFacePipeline(pipeline=pipe)
-    retriever = vectorstore.as_retriever(search_kwargs={"k": config["retriever"]["k"]})
-    return RetrievalQA.from_chain_type(llm=llm, retriever=retriever, return_source_documents=True)
-
+    retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
+    return RetrievalQA.from_chain_type(
+        llm=llm,
+        retriever=retriever,
+        return_source_documents=True
+    )
 
 qa_chain = get_qa_chain()
 
-
 # === Streamlit UI ===
-st.title("🧠 CV Chatbot (YAML-based, Local FLAN-T5)")
+st.title("🧠 CV Chatbot (ChatGPT-based)")
 
 if "history" not in st.session_state:
     st.session_state.history = []
@@ -119,11 +99,19 @@ query = st.text_input("Ask me anything about my education, certifications, skill
 if query:
     normalized_query = map_query_synonyms(query, synonyms)
     with st.spinner("Generating answer..."):
-        result = qa_chain.invoke({"query": normalized_query})
+        result = qa_chain({"query": normalized_query})
+
+    # Fallback: if result is empty, check top-level keys
+    if not result.get("result"):
+        for doc in _chunks:
+            if doc.metadata.get("key") == normalized_query:
+                result["result"] = doc.page_content
+                break
+
     st.write(f"**Answer:** {result['result']}")
     st.session_state.history.append((query, result['result']))
 
     for q, a in reversed(st.session_state.history):
         st.markdown(f"**Q:** {q}")
-        st.markdown(f"**A:**\n{a}")
+        st.markdown(f"**A:** {a}")
         st.markdown("---")
