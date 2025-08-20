@@ -6,36 +6,25 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.chains import RetrievalQA
 from langchain.chat_models import ChatOpenAI
 
-# === Load OpenAI API key from Streamlit secrets ===
+# === OpenAI API key ===
 api_key = st.secrets["openai"]["api_key"]
-
-# === Load config.yaml ===
-with open("config.yaml", "r") as f:
-    config = yaml.safe_load(f)
 
 # === Synonyms dictionary ===
 synonyms = {
-    "education": ["education", "university", "universities", "degree", "degrees", "educations",
-                  "education background", "educational background", "academic background", "qualifications"],
-    "certifications": ["certification", "certifications", "certificate", "certificates", "exam", "exams"],
-    "skills": ["skill", "skills", "expertise", "competence", "competences", "capability", "capabilities",
-               "proficiencies", "programming languages", "programming", "soft skills", "strengths", "qualities"],
-    "work_experience": ["projects", "project", "portfolio", "work experience", "work projects",
-                        "career projects", "experience", "employment", "work", "job", "jobs",
-                        "professional experience", "career experience", "work history"],
-    "awards": ["award", "awards", "recognition", "recognitions", "honor", "honors"],
-    "current_position": ["current position", "current job", "current role", "current employment", "current work"],
-    "publications": ["publication", "publications", "paper", "papers", "article", "articles"],
-    "languages": ["language", "languages", "spoken language", "spoken languages", "spoken"],
-    "interests": ["interest", "interests", "hobby", "hobbies", "passions", "personal interests"],
-    "references": ["reference", "references", "referee", "referees"],
-    "contact": ["contact", "contact information", "contact info", "contact details"],
-    "summary": ["summary", "profile", "introduction", "about me", "bio", "biography",
-                "self-introduction", "self introduction", "self summary", "introduce yourself"],
-    "achievements": ["achievement", "achievements", "award", "awards", "recognition", "recognitions"]
+    "education": ["education", "university", "degree", "academic background", "qualifications"],
+    "certifications": ["certification", "certificate", "exam"],
+    "skills": ["skills", "expertise", "competences", "programming languages", "soft skills"],
+    "work_experience": ["work experience", "experience", "projects", "career projects", "job", "jobs"],
+    "awards": ["awards", "recognition", "honor"],
+    "current_position": ["current role", "current position", "current job"],
+    "publications": ["publications", "papers", "articles"],
+    "languages": ["languages", "spoken language"],
+    "interests": ["interests", "hobbies", "passions"],
+    "contact": ["contact", "contact information"],
+    "summary": ["summary", "profile", "introduction", "bio"],
+    "achievements": ["achievements", "award", "recognition"]
 }
 
-# === Function to map query synonyms ===
 def map_query_synonyms(query: str, synonyms_dict: dict) -> str:
     query_lower = query.lower()
     for canonical, syn_list in synonyms_dict.items():
@@ -56,27 +45,27 @@ def load_yaml_as_documents(path: str):
 
     documents = []
 
+    # Top-level keys
     for key, value in data.items():
         if key != "Example questions and answers":
             chunk_text = f"{key}:\n{yaml.dump(value, allow_unicode=True)}"
-            documents.append(Document(page_content=chunk_text))
+            documents.append(Document(page_content=chunk_text, metadata={"key": key}))
 
+    # Add example Q&A separately
     if "Example questions and answers" in data:
-        qas = data["Example questions and answers"]
-        for i, qa in enumerate(qas):
-            chunk_text = f"Example question {i+1}:\nq: {qa['q']}\na: {qa['a']}\n"
-            documents.append(Document(page_content=chunk_text))
+        for i, qa in enumerate(data["Example questions and answers"]):
+            chunk_text = f"Q: {qa['q']}\nA: {qa['a']}"
+            documents.append(Document(page_content=chunk_text, metadata={"key": "Example Q&A"}))
 
     return documents
 
-# Correct path: pages/ -> sibling knowledge_bas.venv311\Scripts\activatee/
 _chunks = load_yaml_as_documents("knowledge_base/profile.yaml")
 st.write(f"📘 Loaded {len(_chunks)} chunks from YAML profile.")
 
 # === Create vectorstore ===
 @st.cache_resource
 def create_vectorstore(_chunks):
-    embeddings = HuggingFaceEmbeddings(model_name=config["embedding"]["model_name"])
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     vectordb = Chroma.from_documents(_chunks, embeddings)
     return vectordb
 
@@ -90,7 +79,7 @@ def get_qa_chain():
         temperature=0,
         openai_api_key=api_key
     )
-    retriever = vectorstore.as_retriever(search_kwargs={"k": config["retriever"]["k"]})
+    retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
     return RetrievalQA.from_chain_type(
         llm=llm,
         retriever=retriever,
@@ -111,6 +100,14 @@ if query:
     normalized_query = map_query_synonyms(query, synonyms)
     with st.spinner("Generating answer..."):
         result = qa_chain({"query": normalized_query})
+
+    # Fallback: if result is empty, check top-level keys
+    if not result.get("result"):
+        for doc in _chunks:
+            if doc.metadata.get("key") == normalized_query:
+                result["result"] = doc.page_content
+                break
+
     st.write(f"**Answer:** {result['result']}")
     st.session_state.history.append((query, result['result']))
 
