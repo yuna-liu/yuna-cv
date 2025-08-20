@@ -69,7 +69,7 @@ def load_yaml_as_documents(path: str):
 
     return documents
 
-# Correct path: pages/ -> sibling knowledge_base/
+# Correct path: pages/ -> sibling knowledge_bas.venv311\Scripts\activatee/
 _chunks = load_yaml_as_documents("knowledge_base/profile.yaml")
 st.write(f"📘 Loaded {len(_chunks)} chunks from YAML profile.")
 

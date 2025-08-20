@@ -37,3 +37,6 @@ pypdf
 
 
 pysqlite3-binary 
+
+# OpenAI
+openai
