@@ -1,0 +1,17 @@
+document_loader:
+  folder: "knowledge-base"
+  pattern: "**/*.pdf"
+  chunk_size: 1000
+  chunk_overlap: 200
+
+embedding:
+  model_name: "sentence-transformers/all-MiniLM-L6-v2"
+
+retriever:
+  k: 5
+
+model:
+  name: "google/flan-t5-base"
+  max_new_tokens: 512
+  temperature: 0.5
+  top_p: 0.95

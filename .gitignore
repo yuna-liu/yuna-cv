@@ -156,9 +156,6 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-.venv_job_analysis/
-venv_job_analysis/
-
 
 # Spyder project settings
 .spyderproject

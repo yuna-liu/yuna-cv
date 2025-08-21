@@ -8,13 +8,6 @@ pip install -r requirements.txt --in case I want to install the defined packages
 
 terminal run: streamlit run streamlit_app.py
 
-*create another testing env to avoid version conflict
-python -m venv venv_job_analysis
-venv_job_analysis\Scripts\activate
-pip install -r requirements_job_analysis.txt
-streamlit run streamlit_app.py
-
-
 Updates on 2025-06-02
 
 Summary Checklist for Knowledge Graph using neoj4: Step Status Created Aura Free instance 🔲 Found your Bolt URI 🔲 Set your password 🔲 Inserted data with Cypher 🔲 Added connection info to Streamlit code 🔲

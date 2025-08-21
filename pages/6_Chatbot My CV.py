@@ -1,11 +1,10 @@
 import streamlit as st
 import yaml
 from langchain_core.documents import Document
-from langchain_community.vectorstores import Chroma, FAISS
+from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.chains import RetrievalQA
 from langchain.chat_models import ChatOpenAI
-import os
 
 # === OpenAI API key ===
 api_key = st.secrets["openai"]["api_key"]
@@ -64,22 +63,11 @@ _chunks = load_yaml_as_documents("knowledge_base/profile.yaml")
 st.write(f"📘 Loaded {len(_chunks)} chunks from YAML profile.")
 
 # === Create vectorstore ===
-# === Create vectorstore ===
 @st.cache_resource
 def create_vectorstore(_chunks):
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    try:
-        # Force FAISS if on Streamlit Cloud or Chroma fails
-        if os.environ.get("STREAMLIT_RUNTIME") == "cloud":
-            st.info("Using FAISS (cloud mode)")
-            vectordb = FAISS.from_documents(_chunks, embeddings)
-        else:
-            st.info("Using Chroma (local mode)")
-            vectordb = Chroma.from_documents(_chunks, embeddings, persist_directory="chroma_db")
-        return vectordb
-    except RuntimeError as e:
-        st.warning(f"Chroma failed: {e} — switching to FAISS.")
-        return FAISS.from_documents(_chunks, embeddings)
+    vectordb = Chroma.from_documents(_chunks, embeddings)
+    return vectordb
 
 vectorstore = create_vectorstore(_chunks)
 
