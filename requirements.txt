@@ -27,7 +27,7 @@ virtualenv
 
 transformers
 langchain==0.1.16
-langchain-community==0.1.11
+langchain-community
 sentence-transformers
 huggingface-hub>=0.19.3
 chromadb==0.4.13  # ✅ downgrade to avoid sqlite3 issue
