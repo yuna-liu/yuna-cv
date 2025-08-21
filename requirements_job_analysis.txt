@@ -1,0 +1,48 @@
+# Core app requirements
+streamlit # stable Streamlit
+streamlit-timeline
+neo4j
+PyYAML>=6.0
+
+# Data handling
+pandas
+numpy
+
+# Visualization
+matplotlib
+seaborn
+plotly
+
+# Interaction with APIs / environment
+requests
+python-dotenv==1.0.1
+virtualenv
+
+# Graphs / optional visualizations
+networkx
+pyvis
+
+# Hugging Face & embeddings
+transformers>=4.35.0
+sentence-transformers>=2.2.2
+huggingface-hub>=0.19.3
+
+# LangChain for pipeline
+langchain>=0.1.16
+langchain-community
+
+# Vector DB
+chromadb==0.4.13  # avoid sqlite3 issue
+
+# PDF processing
+PyPDF2==3.0.1
+pypdf
+
+# Database binary
+pysqlite3-binary
+
+# OpenAI API
+openai>=0.27.8
+
+langchain-core>=0.3.74
+langchain_community

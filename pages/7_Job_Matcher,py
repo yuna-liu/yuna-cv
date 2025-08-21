@@ -1,0 +1,89 @@
+# File: pages/Job_Matcher.py
+import streamlit as st
+import yaml
+from pathlib import Path
+from langchain_core.documents import Document
+from langchain_community.vectorstores import Chroma
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain.chains import RetrievalQA
+from langchain.chat_models import ChatOpenAI
+from PyPDF2 import PdfReader
+
+st.title("📄 Job Matcher Demo")
+
+# === Load OpenAI key ===
+api_key = st.secrets["openai"]["api_key"]
+
+# === Upload CV / Profile ===
+cv_file = st.file_uploader("Upload your CV (YAML or PDF)", type=["yaml", "yml", "pdf"])
+job_file = st.file_uploader("Upload Job Description (PDF or TXT)", type=["pdf", "txt"])
+
+@st.cache_resource
+def load_documents(file):
+    docs = []
+    if file.name.endswith((".yaml", ".yml")):
+        data = yaml.safe_load(file)
+        for key, value in data.items():
+            chunk_text = f"{key}:\n{yaml.dump(value, allow_unicode=True)}"
+            docs.append(Document(page_content=chunk_text))
+    elif file.name.endswith(".pdf"):
+        reader = PdfReader(file)
+        for page in reader.pages:
+            text = page.extract_text()
+            if text:
+                docs.append(Document(page_content=text))
+    elif file.name.endswith(".txt"):
+        text = file.read().decode("utf-8")
+        docs.append(Document(page_content=text))
+    return docs
+
+if cv_file and job_file:
+    st.info("Processing documents...")
+    cv_docs = load_documents(cv_file)
+    job_docs = load_documents(job_file)
+
+    # === Create embeddings & Chroma vector store ===
+    embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    vectordb = Chroma.from_documents(cv_docs, embedding_model, persist_directory="./chroma_cv")
+    vectordb.persist()
+
+    # === RetrievalQA chain using OpenAI ChatGPT ===
+    llm = ChatOpenAI(
+        model_name="gpt-3.5-turbo",
+        temperature=0,
+        openai_api_key=api_key
+    )
+    retriever = vectordb.as_retriever(search_kwargs={"k": 5})
+    qa_chain = RetrievalQA.from_chain_type(
+        llm=llm,
+        retriever=retriever,
+        return_source_documents=True
+    )
+
+    # === Merge all job description text ===
+    job_text = "\n".join([doc.page_content for doc in job_docs])
+
+    # === Ask ChatGPT to analyze ===
+    prompt = f"""
+You are an AI career assistant. Analyze the following job description and compare it with the candidate's CV.
+Candidate CV knowledge is stored in the vector database.
+Job Description:
+{job_text}
+
+Please generate:
+1. Skills and tools match.
+2. Skills/tools missing from candidate.
+3. Experience gaps.
+4. Suggested improvements for candidate to better match this job.
+Answer in clear bullet points.
+"""
+    with st.spinner("Generating analysis..."):
+        result = qa_chain({"query": prompt})
+
+    st.subheader("📊 Job Match Analysis")
+    st.write(result['result'])
+
+    st.subheader("📚 Source documents retrieved")
+    for doc in result['source_documents']:
+        st.markdown(f"- {doc.page_content[:200]}...")  # show snippet
+
