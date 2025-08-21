@@ -35,7 +35,7 @@ CV Data:
 """
 
 # === Streamlit UI ===
-st.title("🧠 CV Chatbot (OpenAI-based)")
+st.title("💬 CV Chatbot (OpenAI-based)")
 
 if "history" not in st.session_state:
     st.session_state.history = []

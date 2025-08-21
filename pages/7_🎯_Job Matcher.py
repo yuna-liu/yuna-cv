@@ -34,7 +34,7 @@ CV Data:
 {profile_text}
 """
 
-st.title("🧠 CV & Job Match")
+st.title("🎯 Job Matcher")
 
 
 # --- CV vs Job Match Section ---
