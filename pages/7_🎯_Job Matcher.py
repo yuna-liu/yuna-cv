@@ -41,7 +41,7 @@ st.title("🎯 Job Matcher")
 st.header("📄 Compare CV to Job Description")
 
 job_description = st.text_area(
-    "Paste the job description here to compare your CV:",
+    "Paste the job description here to see how my CV matches the role:",
     placeholder="Job title, responsibilities, requirements..."
 )
 
