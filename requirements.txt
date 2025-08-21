@@ -40,3 +40,4 @@ pysqlite3-binary
 
 # OpenAI
 openai
+langchain_openai
