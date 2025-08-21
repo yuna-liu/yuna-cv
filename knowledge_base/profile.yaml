@@ -42,23 +42,23 @@ skills:
     - adaptable
 
 work_experience:
-  - title: Data Engineer at Sales Dashboard team, Volvo Cars
+  - title: Data Engineer, Sales Dashboard Team, Volvo Cars
     description: >
       Built robust backend ETL pipelines using Matillion and Snowflake.
       Developed data visualization dashboards in Power BI.
-      Developed GenAI solutions for business insights.
+      Implemented GenAI solutions for business insights.
       Managed business logic in Azure Analysis Services and collaborated across teams to ensure data accuracy and timeliness.
 
-  - title: Data Engineer at Cell Durability team, Volvo Cars
+  - title: Data Engineer, Cell Durability Team, Volvo Cars
     description: >
       Designed and implemented automated data pipelines for battery testing data.
       Enhanced Power BI performance by over 70%.
 
-  - title: Data Scientist at Collector Bank
+  - title: Data Scientist, Collector Bank
     description: >
       Cleaned and integrated large-scale credit datasets.
       Applied machine learning to predict default risk.
-      Used Databricks MLflow and PySpark to deploy and analyze models.
+      Deployed and analyzed models using Databricks MLflow and PySpark.
 
 certifications:
   - Databricks Certified Generative AI Engineer Associate
@@ -102,3 +102,81 @@ example_questions_and_answers:
       I have strong skills in Python, SQL, ML frameworks (scikit-learn, PySpark, TensorFlow, Databricks ML),
       cloud platforms (Azure), data tools (Snowflake, Databricks, Matillion, Power BI, Azure Data Factory, Streamlit),
       and soft skills including structured thinking, solution-orientation, enthusiasm, self-motivation, and adaptability.
+
+  - question: What is your experience with data engineering?
+    answer: >
+      Extensive experience in building ETL pipelines, data integration, and analytics.
+      At Volvo Cars, I developed robust backend ETL pipelines using Matillion and Snowflake,
+      created Power BI visualizations, and automated workflows for large datasets.
+
+  - question: What is your experience with machine learning?
+    answer: >
+      Hands-on experience building and deploying ML models for predictive analytics.
+      At Collector Bank, I cleaned and integrated credit datasets, applied ML to predict default risk,
+      and used Databricks MLflow and PySpark for model deployment.
+
+  - question: What is your experience with GenAI?
+    answer: >
+      Practical experience building GenAI applications including chatbots and RAG pipelines.
+      Worked with Streamlit, Hugging Face, Snowflake Cortex, and vector databases to create context-aware AI solutions.
+      Studied LLMs, prompt engineering, and Generative AI concepts at IT-Högskolan.
+
+  - question: What is your experience with RAG?
+    answer: >
+      Implemented Retrieval-Augmented Generation (RAG) pipelines to improve AI response accuracy and context-awareness.
+      Integrated vector databases and Hugging Face Transformers to retrieve relevant information for GenAI applications.
+
+  - question: What is your experience with AI governance?
+    answer: >
+      Studied responsible AI principles, model evaluation, explainability, and data privacy.
+      Applied governance measures in projects to ensure ethical AI use, addressing model bias, transparency, and compliance.
+
+  - question: What is your experience with data visualization?
+    answer: >
+      Developed interactive dashboards with Power BI to visualize complex datasets and business metrics.
+      Optimized data models and implemented best practices for clear and actionable insights.
+
+  - question: What is your experience with Python?
+    answer: >
+      Extensive Python experience for data analysis, ML, and automation.
+      Built workflows, ML pipelines, and reporting scripts using Pandas, scikit-learn, TensorFlow, and PySpark.
+
+  - question: What is your experience with SQL?
+    answer: >
+      Strong SQL skills for querying, transformation, and integration.
+      Used extensively in Snowflake for ETL pipelines and data management.
+
+  - question: What is your experience with cloud platforms?
+    answer: >
+      Hands-on experience with Microsoft Azure including Data Factory, Synapse, Azure ML, and DevOps.
+      Integrated cloud services for scalable data solutions and GenAI applications.
+
+  - question: What is your experience with data tools?
+    answer: >
+      Worked with Snowflake, Matillion, Power BI, and Streamlit.
+      Built end-to-end solutions integrating data engineering, analytics, and visualization.
+
+  - question: Have you studied artificial intelligence?
+    answer: >
+      Studied AI and ML from 2021–2023 at IT-Högskolan covering deep learning, NLP, computer vision, and model deployment.
+      Gained hands-on experience with TensorFlow, PyTorch, LLMs, prompt engineering, and GenAI tools like Hugging Face and LangChain.
+
+  - question: What projects have you done in deep learning, NLP, and computer vision?
+    answer: >
+      Built CNN image classifiers, LSTM time-series forecasting models, NLP tasks including sentiment analysis, text classification, and NER.
+      Used frameworks like TensorFlow, PyTorch, and Hugging Face with techniques such as transfer learning and hyperparameter tuning.
+
+  - question: What projects have you done for model deployment?
+    answer: >
+      Deployed models as REST APIs using Flask and FastAPI in Databricks and Azure.
+      Built Streamlit end-user applications and used Azure ML for model lifecycle management.
+      Implemented CI/CD pipelines using GitHub Actions and Azure DevOps.
+
+  - question: What certifications do you hold?
+    answer: >
+      Databricks: Generative AI Engineer Associate, Machine Learning Professional  
+      Matillion: Associate Certification  
+      Microsoft: Azure AI Fundamentals, Azure Data Engineer Associate, Azure Data Fundamentals  
+      Neo4j: Certified Professional  
+      Snowflake: SnowPro Core Certification  
+      Udemy: Credit Risk Modeling in Python 2021
