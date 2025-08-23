@@ -9,7 +9,7 @@ import json
 api_key = st.secrets["openai"]["api_key"]
 client = OpenAI(api_key=api_key)
 
-st.title("🎯 Multi-CV Job Matcher (Robust Version)")
+st.title("🔍 Multi-CV Job Matcher (A fun Version)")
 
 st.markdown("""
 Upload up to **5 PDF CVs** and paste the **Job Description** text.  
