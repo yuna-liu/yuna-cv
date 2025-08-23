@@ -86,7 +86,14 @@ Return the result in JSON format with keys: "matched", "missing", "score", "expl
 
         # Display results in a DataFrame
         df = pd.DataFrame(results)
+
+        # Make sure Match Score is numeric
+        df["Match Score"] = pd.to_numeric(df["Match Score"], errors="coerce").fillna(0)
+
+        # Sort descending by Match Score
         df = df.sort_values("Match Score", ascending=False)
+
+        # Show in Streamlit
         st.subheader("CV Matching Results")
         st.dataframe(df)
 
