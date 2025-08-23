@@ -37,11 +37,15 @@ if uploaded_files and job_description:
         results = []
 
         for pdf_file in uploaded_files:
-            # Read PDF text
+            # --- Read PDF text ---
             reader = PdfReader(pdf_file)
-            text = "\n".join([page.extract_text() for page in reader.pages if page.extract_text()])
+            text_pages = [page.extract_text() for page in reader.pages if page.extract_text()]
+            text = "\n".join(text_pages)
+            
+            # --- Clean text ---
+            text = re.sub(r'\s+', ' ', text)  # remove excessive whitespace
 
-            # Create prompt for OpenAI
+            # --- Create prompt ---
             prompt = f"""
 You are a career assistant.
 
@@ -55,6 +59,7 @@ Please provide:
 1. List of skills, experiences, and qualifications from the CV that match the job requirements.
 2. List of skills/experience that are missing.
 3. An overall match score (0-100%) with a short explanation.
+
 Return the result in JSON format with keys: "matched", "missing", "score", "explanation".
 """
 
@@ -70,39 +75,41 @@ Return the result in JSON format with keys: "matched", "missing", "score", "expl
 
             answer_text = response.choices[0].message.content
 
-            # --- Try to parse JSON ---
+            # --- Try to parse JSON, fallback to regex ---
             try:
                 answer_json = json.loads(answer_text)
             except:
+                # fallback: extract numeric score from text
+                score_match = re.search(r'(\d{1,3})', answer_text)
+                score = int(score_match.group(1)) if score_match else 0
                 answer_json = {
                     "matched": answer_text,
                     "missing": "",
-                    "score": 0,
+                    "score": score,
                     "explanation": ""
                 }
 
             # --- Append to results ---
             results.append({
                 "CV Filename": pdf_file.name,
-                "Matched Skills": ", ".join(answer_json.get("matched")) if isinstance(answer_json.get("matched"), list) else str(answer_json.get("matched")),
-                "Missing Skills": ", ".join(answer_json.get("missing")) if isinstance(answer_json.get("missing"), list) else str(answer_json.get("missing")),
-                "Match Score": str(answer_json.get("score")),  # keep as string first
+                "Matched Skills": ", ".join(answer_json.get("matched")) 
+                                  if isinstance(answer_json.get("matched"), list) 
+                                  else str(answer_json.get("matched")),
+                "Missing Skills": ", ".join(answer_json.get("missing")) 
+                                  if isinstance(answer_json.get("missing"), list) 
+                                  else str(answer_json.get("missing")),
+                "Match Score": answer_json.get("score"),
                 "Explanation": str(answer_json.get("explanation"))
             })
 
-        # --- After loop: display results ---
+        # --- Display results ---
         df = pd.DataFrame(results)
-
-        # Clean Match Score (keep only digits & dot)
-        df["Match Score"] = df["Match Score"].apply(lambda x: re.sub(r"[^\d.]", "", str(x)))
         df["Match Score"] = pd.to_numeric(df["Match Score"], errors="coerce").fillna(0)
-
-        # Sort descending
         df = df.sort_values("Match Score", ascending=False)
 
         st.subheader("CV Matching Results")
         st.dataframe(df)
 
-        # Downloadable CSV report
+        # --- Download CSV report ---
         csv = df.to_csv(index=False)
         st.download_button("📥 Download Report", csv, file_name="cv_match_report.csv", mime="text/csv")
