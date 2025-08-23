@@ -2,7 +2,8 @@ import streamlit as st
 from openai import OpenAI
 from PyPDF2 import PdfReader
 import pandas as pd
-import io
+import re
+import json
 
 # === OpenAI API key ===
 api_key = st.secrets["openai"]["api_key"]
@@ -57,7 +58,7 @@ Please provide:
 Return the result in JSON format with keys: "matched", "missing", "score", "explanation".
 """
 
-            # Call OpenAI
+            # --- Call OpenAI ---
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
@@ -69,32 +70,36 @@ Return the result in JSON format with keys: "matched", "missing", "score", "expl
 
             answer_text = response.choices[0].message.content
 
-            # Try to parse JSON
-            import json
+            # --- Try to parse JSON ---
             try:
                 answer_json = json.loads(answer_text)
             except:
-                answer_json = {"matched": answer_text, "missing": "", "score": 0, "explanation": ""}
+                answer_json = {
+                    "matched": answer_text,
+                    "missing": "",
+                    "score": 0,
+                    "explanation": ""
+                }
 
+            # --- Append to results ---
             results.append({
                 "CV Filename": pdf_file.name,
                 "Matched Skills": ", ".join(answer_json.get("matched")) if isinstance(answer_json.get("matched"), list) else str(answer_json.get("matched")),
                 "Missing Skills": ", ".join(answer_json.get("missing")) if isinstance(answer_json.get("missing"), list) else str(answer_json.get("missing")),
-                "Match Score": answer_json.get("score"),
+                "Match Score": str(answer_json.get("score")),  # keep as string first
                 "Explanation": str(answer_json.get("explanation"))
             })
 
-
-        # Display results in a DataFrame
+        # --- After loop: display results ---
         df = pd.DataFrame(results)
 
-        # Make sure Match Score is numeric
+        # Clean Match Score (keep only digits & dot)
+        df["Match Score"] = df["Match Score"].apply(lambda x: re.sub(r"[^\d.]", "", str(x)))
         df["Match Score"] = pd.to_numeric(df["Match Score"], errors="coerce").fillna(0)
 
-        # Sort descending by Match Score
+        # Sort descending
         df = df.sort_values("Match Score", ascending=False)
 
-        # Show in Streamlit
         st.subheader("CV Matching Results")
         st.dataframe(df)
 
