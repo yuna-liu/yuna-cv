@@ -78,11 +78,12 @@ Return the result in JSON format with keys: "matched", "missing", "score", "expl
 
             results.append({
                 "CV Filename": pdf_file.name,
-                "Matched Skills": answer_json.get("matched"),
-                "Missing Skills": answer_json.get("missing"),
+                "Matched Skills": ", ".join(answer_json.get("matched")) if isinstance(answer_json.get("matched"), list) else str(answer_json.get("matched")),
+                "Missing Skills": ", ".join(answer_json.get("missing")) if isinstance(answer_json.get("missing"), list) else str(answer_json.get("missing")),
                 "Match Score": answer_json.get("score"),
-                "Explanation": answer_json.get("explanation")
+                "Explanation": str(answer_json.get("explanation"))
             })
+
 
         # Display results in a DataFrame
         df = pd.DataFrame(results)
