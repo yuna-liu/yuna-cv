@@ -9,7 +9,7 @@ import json
 api_key = st.secrets["openai"]["api_key"]
 client = OpenAI(api_key=api_key)
 
-st.title("🎯 Multi-CV Job Matcher (Test Version)")
+st.title("🎯 Multi-CV Job Matcher (Robust Version)")
 
 st.markdown("""
 Upload up to **5 PDF CVs** and paste the **Job Description** text.  
@@ -39,13 +39,9 @@ if uploaded_files and job_description:
         for pdf_file in uploaded_files:
             # --- Read PDF text ---
             reader = PdfReader(pdf_file)
-            text_pages = [page.extract_text() for page in reader.pages if page.extract_text()]
-            text = "\n".join(text_pages)
-            
-            # --- Clean text ---
-            text = re.sub(r'\s+', ' ', text)  # remove excessive whitespace
+            text = "\n".join([page.extract_text() for page in reader.pages if page.extract_text()])
 
-            # --- Create prompt ---
+            # --- Create prompt for OpenAI ---
             prompt = f"""
 You are a career assistant.
 
@@ -59,7 +55,6 @@ Please provide:
 1. List of skills, experiences, and qualifications from the CV that match the job requirements.
 2. List of skills/experience that are missing.
 3. An overall match score (0-100%) with a short explanation.
-
 Return the result in JSON format with keys: "matched", "missing", "score", "explanation".
 """
 
@@ -75,41 +70,51 @@ Return the result in JSON format with keys: "matched", "missing", "score", "expl
 
             answer_text = response.choices[0].message.content
 
-            # --- Try to parse JSON, fallback to regex ---
+            # --- Parse JSON or fallback ---
             try:
                 answer_json = json.loads(answer_text)
             except:
-                # fallback: extract numeric score from text
-                score_match = re.search(r'(\d{1,3})', answer_text)
-                score = int(score_match.group(1)) if score_match else 0
+                # fallback for free-text output
                 answer_json = {
                     "matched": answer_text,
                     "missing": "",
-                    "score": score,
+                    "score": 0,
                     "explanation": ""
                 }
 
-            # --- Append to results ---
+            # --- Extract numeric score ---
+            score = 0
+            raw_score = answer_json.get("score")
+            if raw_score:
+                match = re.search(r'\d+', str(raw_score))
+                if match:
+                    score = int(match.group(0))
+            else:
+                # fallback: find any number in text
+                match = re.search(r'\b\d{1,3}\b', str(answer_text))
+                if match:
+                    score = int(match.group(0))
+
+            # --- Append results ---
             results.append({
                 "CV Filename": pdf_file.name,
                 "Matched Skills": ", ".join(answer_json.get("matched")) 
-                                  if isinstance(answer_json.get("matched"), list) 
-                                  else str(answer_json.get("matched")),
+                                   if isinstance(answer_json.get("matched"), list) 
+                                   else str(answer_json.get("matched")),
                 "Missing Skills": ", ".join(answer_json.get("missing")) 
-                                  if isinstance(answer_json.get("missing"), list) 
-                                  else str(answer_json.get("missing")),
-                "Match Score": answer_json.get("score"),
-                "Explanation": str(answer_json.get("explanation"))
+                                   if isinstance(answer_json.get("missing"), list) 
+                                   else str(answer_json.get("missing")),
+                "Match Score": score,
+                "Explanation": str(answer_json.get("explanation", ""))
             })
 
         # --- Display results ---
         df = pd.DataFrame(results)
-        df["Match Score"] = pd.to_numeric(df["Match Score"], errors="coerce").fillna(0)
         df = df.sort_values("Match Score", ascending=False)
 
         st.subheader("CV Matching Results")
         st.dataframe(df)
 
-        # --- Download CSV report ---
+        # --- Downloadable CSV ---
         csv = df.to_csv(index=False)
         st.download_button("📥 Download Report", csv, file_name="cv_match_report.csv", mime="text/csv")
