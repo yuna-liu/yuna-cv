@@ -30,6 +30,9 @@ job_description = st.text_area(
     placeholder="Job title, responsibilities, requirements..."
 )
 
+# --- Dictionary to store CV texts for later QA ---
+cv_texts = {}
+
 if uploaded_files and job_description:
     if len(uploaded_files) > 5:
         st.warning("Please upload up to 5 CVs only.")
@@ -40,6 +43,7 @@ if uploaded_files and job_description:
             # --- Read PDF text ---
             reader = PdfReader(pdf_file)
             text = "\n".join([page.extract_text() for page in reader.pages if page.extract_text()])
+            cv_texts[pdf_file.name] = text  # store text for QA
 
             # --- Create prompt for OpenAI ---
             prompt = f"""
@@ -74,7 +78,6 @@ Return the result in JSON format with keys: "matched", "missing", "score", "expl
             try:
                 answer_json = json.loads(answer_text)
             except:
-                # fallback for free-text output
                 answer_json = {
                     "matched": answer_text,
                     "missing": "",
@@ -90,7 +93,6 @@ Return the result in JSON format with keys: "matched", "missing", "score", "expl
                 if match:
                     score = int(match.group(0))
             else:
-                # fallback: find any number in text
                 match = re.search(r'\b\d{1,3}\b', str(answer_text))
                 if match:
                     score = int(match.group(0))
@@ -118,3 +120,45 @@ Return the result in JSON format with keys: "matched", "missing", "score", "expl
         # --- Downloadable CSV ---
         csv = df.to_csv(index=False)
         st.download_button("📥 Download Report", csv, file_name="cv_match_report.csv", mime="text/csv")
+
+# --- RAG-style Question Answering ---
+st.subheader("Ask Questions About Candidates (RAG style)")
+question_input = st.text_input(
+    "Example: Who has Azure ML pipeline experience?",
+    placeholder="Type your question here..."
+)
+
+if st.button("Ask Question") and question_input.strip():
+    if not uploaded_files:
+        st.info("Upload CVs first.")
+    else:
+        qa_results = []
+        for pdf_file in uploaded_files:
+            text = cv_texts.get(pdf_file.name)
+            if not text:
+                continue
+            prompt = f"""
+You are a career assistant.
+
+CV Text:
+{text}
+
+Question:
+{question_input}
+
+Answer concisely. If no relevant information, say 'No relevant information found'.
+"""
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a helpful career assistant."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0
+            )
+            answer_text = response.choices[0].message.content.strip()
+            if not answer_text:
+                answer_text = "No relevant information found."
+            qa_results.append(f"**{pdf_file.name}**: {answer_text}")
+
+        st.markdown("\n\n".join(qa_results))
